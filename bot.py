@@ -3,7 +3,7 @@ import requests
 from time import sleep
 import telegram
 from dotenv import load_dotenv
-
+import logging
 
 def send_notification(response, bot, chat_id):
     new_attempt = response["new_attempts"][0]
@@ -34,6 +34,7 @@ def main():
     while True:
         try:
             response = fetch_response(url, headers)
+            logging.warning('Предупреждение, что-то могло сломаться')
             if response["status"] == "found":
                 params = {"timestamp": response["new_attempts"][0]["timestamp"]}
                 send_notification(response, bot, chat_id)
