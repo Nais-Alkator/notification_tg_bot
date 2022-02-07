@@ -5,6 +5,8 @@ import telegram
 from dotenv import load_dotenv
 import logging
 
+logger = logging.getLogger("Логгер")
+
 
 def send_notification(response, bot, chat_id):
     new_attempt = response["new_attempts"][0]
@@ -36,7 +38,6 @@ def main():
     bot = telegram.Bot(token=telegram_token)
     headers = {"Authorization": f"Token {devman_token}"}
     url = "https://dvmn.org/api/long_polling/"
-    logger = logging.getLogger("Логер")
     logger.setLevel(logging.DEBUG)
     logger.addHandler(TelegramLogsHandler())
     logger.info("Бот запущен")
