@@ -5,6 +5,7 @@ import telegram
 from dotenv import load_dotenv
 import logging
 
+
 def send_notification(response, bot, chat_id):
     new_attempt = response["new_attempts"][0]
     lesson_title = new_attempt["lesson_title"]
@@ -23,6 +24,11 @@ def fetch_response(url, headers, params=None):
 
 
 def main():
+    class TelegramLogsHandler(logging.Handler):
+        def emit(self, record):
+            log_entry = self.format(record)
+            bot.send_message(chat_id, log_entry)
+
     load_dotenv()
     telegram_token = os.environ['TELEGRAM_TOKEN']
     chat_id = os.environ['CHAT_ID']
@@ -30,11 +36,14 @@ def main():
     bot = telegram.Bot(token=telegram_token)
     headers = {"Authorization": f"Token {devman_token}"}
     url = "https://dvmn.org/api/long_polling/"
+    logger = logging.getLogger("Логер")
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(TelegramLogsHandler())
+    logger.info("Бот запущен")
 
     while True:
         try:
             response = fetch_response(url, headers)
-            logging.warning('Предупреждение, что-то могло сломаться')
             if response["status"] == "found":
                 params = {"timestamp": response["new_attempts"][0]["timestamp"]}
                 send_notification(response, bot, chat_id)
@@ -46,6 +55,8 @@ def main():
         except requests.exceptions.ConnectionError:
             sleep(10)
             continue
+        except Exception as error:
+            logger.exception(f"Бот упал с ошибкой:\n{error}")
 
 
 if __name__ == '__main__':
